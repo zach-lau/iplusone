@@ -10,17 +10,19 @@ from konlpy.tag import Okt
 from math import log
 import csv
 from argparse import ArgumentParser
+import heapq
 
 class ExampleEntry:
     def __init__(self, word, rank):
         self.word = word
         self.rank = rank
-        self.example = ''
-        self.score = 0
-    def set_example(self, new_example : str, score : float):
+        self.examples = []
+        self.size = 3
+    def add_example(self, new_example : str, score : float):
         """ Compare to the current example and replace it if better"""
-        self.example = new_example
-        self.score = score
+        heapq.heappush(self.examples, (score, new_example))
+        if len(self.examples) > self.size:
+            heapq.heappop(self.examples)
 
 class Worker():
     def __init__(self, dict_file : str, data_dir : str):
@@ -90,9 +92,7 @@ class Worker():
             hardest_morph = morphs[hardest_index] 
             score = self.get_sentence_score(target_index = hardest_index, morphs=morphs)
             target_entry = self.examples[hardest_morph]
-            if score > target_entry.score:
-                target_entry.set_example(sentence, score)
-                # print(f"Updated entry for {hardest_morph} with example: {sentence}")
+            target_entry.add_example(sentence, score)
             count += 1
             interval = 10000
             if count % interval == 0:
@@ -105,7 +105,8 @@ class Worker():
         with open(outfile, "w") as f:
             writer = csv.writer(f)
             for entry in sorted(self.examples.values(), key=lambda x : x.rank):
-                writer.writerow([entry.rank, entry.word, entry.example])
+                examples = [x[1] for x in entry.examples[::-1]]
+                writer.writerow([entry.rank, entry.word, *examples])
     
     # Test functinos
     def parse(self, sentence):
