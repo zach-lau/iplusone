@@ -3,6 +3,9 @@ Code to extract files from QED database
 """
 import os
 import xml.etree.ElementTree as ET
+import random
+
+random.seed(8)
 
 def getqd(dirname : str):
     if not os.path.isdir(dirname):
@@ -11,11 +14,16 @@ def getqd(dirname : str):
         """ Extract from the given file"""
         t = ET.parse(file)
         r = t.getroot()
-        for elem in r.iter('s'):
-            # This construction is kind if ugly with punctuation but hopefully our tokenize handles it
-            yield ' '.join([x.text for x in elem.findall('w')])
+        for elem in r.findall('s'):
+            # yield ' '.join([x.text for x in elem.findall('w')]) # Reconstruct from parsed
+            for text in elem.itertext():
+                text = text.strip()
+                if len(text) > 0:
+                    yield text
+    files = os.listdir(dirname)
+    random.shuffle(files)
 
-    for file in os.listdir(os.path.join(dirname)):
+    for file in files:
         file = os.path.join(dirname, file)
         try:
             yield from extract(file)
@@ -24,5 +32,8 @@ def getqd(dirname : str):
             continue
 
 if __name__ == "__main__":
-    print(next(getqd("./data/QED/xml/ko")))
+    gen = getqd("./data/test")
+    for _ in range(3):
+        print(next(gen))
+    
     
