@@ -1,3 +1,4 @@
 data/*
 *.csv
+!sample-outputs/*
 __pycache__
