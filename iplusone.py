@@ -17,7 +17,7 @@ class ExampleEntry:
         self.word = word
         self.rank = rank
         self.examples = []
-        self.size = 3
+        self.size = 5
     def add_example(self, new_example : str, score : float):
         """ Compare to the current example and replace it if better"""
         heapq.heappush(self.examples, (score, new_example))
@@ -56,7 +56,7 @@ class Worker():
     def get_sentence_score(self, target_index : int, morphs : list):
         # Won't hanlde having the same morpheme twice but oh well
         def get_information(count : int, total:int = self.total_words):
-            return -log(count)+log(self.total_words)
+            return -log(count)+log(total) # Shannon information
         local_counts = [self.counts[m] for m in morphs]
         local_info = [get_information(c) for c in local_counts]
         target_info = local_info[target_index]
@@ -77,7 +77,7 @@ class Worker():
             self.examples[word] = ExampleEntry(word, rank)
         count = 0 # To check against limit
         for sentence in getqd(self.data_dir):
-            morphs = self.parser.morphs(sentence)
+            morphs = self.parser.morphs(sentence, norm=True, stem=True)
             # Check valid sentence
             if len(morphs) == 0:
                 continue
@@ -111,7 +111,7 @@ class Worker():
     # Test functinos
     def parse(self, sentence):
         """ Get morphs from a sentence """
-        return self.parser.morphs(sentence)
+        return self.parser.morphs(sentence, norm=True, stem=True)
     def get_counts(self, morphs):
         """ Get counts for a list of morphs """
         return [self.counts[m] for m in morphs]
@@ -122,7 +122,7 @@ if __name__ == '__main__':
     # w.write_examples("test_ex.csv")
     parser = ArgumentParser()
     parser.add_argument("--dictionary", default="dictionary.csv")
-    parser.add_argument("--data", default="./data/QED/xml/ko")
+    parser.add_argument("--data", default="./data/QED/raw/ko")
     parser.add_argument("--limit", default=10000, type=int)
     parser.add_argument("--outfile", default="examples.csv")
     args = parser.parse_args()
