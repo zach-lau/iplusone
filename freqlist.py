@@ -17,7 +17,7 @@ def make_frequency(filename : str, limit:int=1000):
     dictionary = defaultdict(lambda : 0)
     count = 0 # Use for tracking messages
     for sentence in getqd(filename):
-        morphs = parser.morphs(sentence)
+        morphs = parser.morphs(sentence, norm=True, stem=True)
         for m in morphs:
             dictionary[m] += 1
         count += 1
@@ -49,7 +49,7 @@ if __name__ == "__main__":
     # write_dictionary(d, "test.csv")
     # print(read_dictionary("test.csv"))
     parser = ArgumentParser()
-    parser.add_argument("--directory", default="./data/QED/xml/ko")
+    parser.add_argument("--directory", default="./data/QED/raw/ko")
     parser.add_argument("--limit", default=10000, type=int)
     parser.add_argument("--outfile", default="dictionary.csv")
 
